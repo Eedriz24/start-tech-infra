@@ -25,6 +25,8 @@ terraform apply \
   -target=module.storage \
   -target=module.database
 
+
+
 echo "=== Updating kubeconfig for $CLUSTER_NAME ==="
 aws eks update-kubeconfig --name "$CLUSTER_NAME" --region "$REGION"
 
