@@ -20,6 +20,7 @@ variable "public_subnet_ids" {
   type = list(string)
 }
 
+# ---------------- EKS Node Group Variables ----------------
 variable "node_instance_types" {
   type    = list(string)
   default = ["t3.micro"]
