@@ -1,0 +1,167 @@
+name: Infrastructure Deploy
+
+# Each Terraform phase (init, plan, apply, destroy) is its own standalone job.
+# They do NOT run automatically as one chained process — you choose which
+# phase to run via the "action" input when triggering manually. Since each
+# GitHub Actions job runs on a fresh runner, every job performs its own
+# `terraform init` first (required to load providers/backend) before doing
+# its specific phase — this is unavoidable with standalone jobs, but the
+# meaningful work (plan/apply/destroy) only happens in the job you select.
+
+on:
+  workflow_dispatch:
+    inputs:
+      action:
+        description: "Which Terraform phase to run"
+        required: true
+        type: choice
+        options:
+          - init
+          - plan
+          - apply
+          - destroy
+        default: plan
+      confirm_destroy:
+        description: 'Only required if action=destroy. Type "destroy" to confirm.'
+        required: false
+        type: string
+
+env:
+  AWS_REGION: us-east-1
+  TF_WORKING_DIR: terraform
+  TF_VERSION: "1.7.5"
+
+jobs:
+  # ---------------------------------------------------------------
+  # STANDALONE: terraform init + validate
+  # ---------------------------------------------------------------
+  terraform-init:
+    name: Terraform Init
+    runs-on: ubuntu-latest
+    if: github.event.inputs.action == 'init'
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ${{ env.TF_VERSION }}
+
+      - name: Terraform Init
+        working-directory: ${{ env.TF_WORKING_DIR }}
+        run: terraform init
+
+      - name: Terraform Fmt Check
+        working-directory: ${{ env.TF_WORKING_DIR }}
+        run: terraform fmt -check -recursive
+
+      - name: Terraform Validate
+        working-directory: ${{ env.TF_WORKING_DIR }}
+        run: terraform validate
+
+  # ---------------------------------------------------------------
+  # STANDALONE: terraform plan
+  # ---------------------------------------------------------------
+  terraform-plan:
+    name: Terraform Plan
+    runs-on: ubuntu-latest
+    if: github.event.inputs.action == 'plan'
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ${{ env.TF_VERSION }}
+
+      - name: Terraform Init
+        working-directory: ${{ env.TF_WORKING_DIR }}
+        run: terraform init
+
+      - name: Terraform Plan
+        working-directory: ${{ env.TF_WORKING_DIR }}
+        run: |
+          terraform plan \
+            -target=module.networking \
+            -target=module.eks \
+            -target=module.storage \
+            -target=module.database \
+            -var="mongodb_atlas_uri=${{ secrets.MONGODB_ATLAS_URI }}"
+
+  # ---------------------------------------------------------------
+  # STANDALONE: terraform apply
+  # ---------------------------------------------------------------
+  terraform-apply:
+    name: Terraform Apply
+    runs-on: ubuntu-latest
+    if: github.event.inputs.action == 'apply'
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ${{ env.TF_VERSION }}
+
+      - name: Terraform Init
+        working-directory: ${{ env.TF_WORKING_DIR }}
+        run: terraform init
+
+      - name: Terraform Apply
+        working-directory: ${{ env.TF_WORKING_DIR }}
+        run: |
+          terraform apply -auto-approve \
+            -target=module.networking \
+            -target=module.eks \
+            -target=module.storage \
+            -target=module.database \
+            -var="mongodb_atlas_uri=${{ secrets.MONGODB_ATLAS_URI }}"
+
+      - name: Show outputs
+        working-directory: ${{ env.TF_WORKING_DIR }}
+        run: terraform output
+
+  # ---------------------------------------------------------------
+  # STANDALONE: terraform destroy (requires typed confirmation)
+  # ---------------------------------------------------------------
+  terraform-destroy:
+    name: Terraform Destroy
+    runs-on: ubuntu-latest
+    if: github.event.inputs.action == 'destroy' && github.event.inputs.confirm_destroy == 'destroy'
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ${{ env.TF_VERSION }}
+
+      - name: Terraform Init
+        working-directory: ${{ env.TF_WORKING_DIR }}
+        run: terraform init
+
+      - name: Terraform Destroy
+        working-directory: ${{ env.TF_WORKING_DIR }}
+        run: |
+          terraform destroy -auto-approve \
+            -var="mongodb_atlas_uri=${{ secrets.MONGODB_ATLAS_URI }}"

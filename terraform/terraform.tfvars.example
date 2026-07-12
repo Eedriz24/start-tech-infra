@@ -1,0 +1,9 @@
+aws_region = "us-east-1"
+azs        = ["us-east-1a", "us-east-1b"]
+
+# Name/tag of the ALB created by the AWS Load Balancer Controller once the
+# backend Ingress is deployed to EKS (used for CloudFront's second origin).
+alb_tag_name = "starttech-backend-alb"
+
+# Provided securely via CI/CD secret — do NOT commit real values.
+mongodb_atlas_uri = "mongodb+srv://<user>:<password>@<cluster-url>/starttech?retryWrites=true&w=majority"
