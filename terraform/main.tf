@@ -29,10 +29,10 @@ module "networking" {
 
 # ---------------- EKS ----------------
 module "eks" {
-  source              = "./modules/eks"
-  vpc_id              = module.networking.vpc_id
-  private_subnet_ids  = module.networking.private_subnet_ids
-  public_subnet_ids   = module.networking.public_subnet_ids
+  source             = "./modules/eks"
+  vpc_id             = module.networking.vpc_id
+  private_subnet_ids = module.networking.private_subnet_ids
+  public_subnet_ids  = module.networking.public_subnet_ids
 }
 
 # ---------------- Storage (S3 frontend + ECR) ----------------
@@ -91,9 +91,9 @@ module "storage" {
 
 # ---------------- Database (ElastiCache Redis) ----------------
 module "database" {
-  source                        = "./modules/database"
-  vpc_id                        = module.networking.vpc_id
-  vpc_cidr_block                = module.networking.vpc_cidr_block
-  database_subnet_ids           = module.networking.database_subnet_ids
-  eks_worker_security_group_id  = module.eks.cluster_security_group_id
+  source                       = "./modules/database"
+  vpc_id                       = module.networking.vpc_id
+  vpc_cidr_block               = module.networking.vpc_cidr_block
+  database_subnet_ids          = module.networking.database_subnet_ids
+  eks_worker_security_group_id = module.eks.cluster_security_group_id
 }
