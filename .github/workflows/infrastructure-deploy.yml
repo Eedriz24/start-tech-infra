@@ -1,14 +1,8 @@
 name: Infrastructure Deploy
-
-# Each Terraform phase (init, plan, apply, destroy) is its own standalone job.
-# They do NOT run automatically as one chained process — you choose which
-# phase to run via the "action" input when triggering manually. Since each
-# GitHub Actions job runs on a fresh runner, every job performs its own
-# `terraform init` first (required to load providers/backend) before doing
-# its specific phase — this is unavoidable with standalone jobs, but the
-# meaningful work (plan/apply/destroy) only happens in the job you select.
-
 on:
+  push:
+    branches:
+      - main
   workflow_dispatch:
     inputs:
       action:
