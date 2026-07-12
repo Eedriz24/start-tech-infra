@@ -1,87 +1,81 @@
-name: Infrastructure Deploy
+
+name: Infrastructure Deployment 
 on:
   push:
-    branches:
-      - main
+    branches: [main]
+    paths:
+      - "terraform/**"
+      - ".github/workflows/infrastructure-deploy.yml"
   workflow_dispatch:
     inputs:
-      action:
-        description: "Which Terraform phase to run"
-        required: true
-        type: choice
-        options:
-          - init
-          - plan
-          - apply
-          - destroy
-        default: plan
       confirm_destroy:
-        description: 'Only required if action=destroy. Type "destroy" to confirm.'
+        description: 'Type "destroy" to confirm.'
         required: false
         type: string
-
+ 
 env:
   AWS_REGION: us-east-1
   TF_WORKING_DIR: terraform
   TF_VERSION: "1.7.5"
-
+ 
 jobs:
   # ---------------------------------------------------------------
-  # STANDALONE: terraform init + validate
+  #Terraform init + validate
   # ---------------------------------------------------------------
   terraform-init:
     name: Terraform Init
     runs-on: ubuntu-latest
-    if: github.event.inputs.action == 'init'
+    if: github.event_name == 'push'
     steps:
       - uses: actions/checkout@v4
-
+ 
       - uses: aws-actions/configure-aws-credentials@v4
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ env.AWS_REGION }}
-
+ 
       - uses: hashicorp/setup-terraform@v3
         with:
           terraform_version: ${{ env.TF_VERSION }}
-
+ 
       - name: Terraform Init
         working-directory: ${{ env.TF_WORKING_DIR }}
         run: terraform init
-
+ 
       - name: Terraform Fmt Check
         working-directory: ${{ env.TF_WORKING_DIR }}
         run: terraform fmt -check -recursive
-
+ 
       - name: Terraform Validate
         working-directory: ${{ env.TF_WORKING_DIR }}
         run: terraform validate
-
+ 
   # ---------------------------------------------------------------
-  # STANDALONE: terraform plan
+  # Terraform plan
   # ---------------------------------------------------------------
   terraform-plan:
     name: Terraform Plan
     runs-on: ubuntu-latest
-    if: github.event.inputs.action == 'plan'
+    needs: terraform-init
+    if: github.event_name == 'push'
     steps:
       - uses: actions/checkout@v4
-
+ 
       - uses: aws-actions/configure-aws-credentials@v4
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ env.AWS_REGION }}
-
+ 
       - uses: hashicorp/setup-terraform@v3
         with:
           terraform_version: ${{ env.TF_VERSION }}
-
+ 
       - name: Terraform Init
         working-directory: ${{ env.TF_WORKING_DIR }}
         run: terraform init
-
+ 
       - name: Terraform Plan
         working-directory: ${{ env.TF_WORKING_DIR }}
         run: |
@@ -91,31 +85,32 @@ jobs:
             -target=module.storage \
             -target=module.database \
             -var="mongodb_atlas_uri=${{ secrets.MONGODB_ATLAS_URI }}"
-
+ 
   # ---------------------------------------------------------------
-  # STANDALONE: terraform apply
+  # Terraform apply 
   # ---------------------------------------------------------------
   terraform-apply:
     name: Terraform Apply
     runs-on: ubuntu-latest
-    if: github.event.inputs.action == 'apply'
+    needs: terraform-plan
+    if: github.event_name == 'push'
     steps:
       - uses: actions/checkout@v4
-
+ 
       - uses: aws-actions/configure-aws-credentials@v4
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ env.AWS_REGION }}
-
+ 
       - uses: hashicorp/setup-terraform@v3
         with:
           terraform_version: ${{ env.TF_VERSION }}
-
+ 
       - name: Terraform Init
         working-directory: ${{ env.TF_WORKING_DIR }}
         run: terraform init
-
+ 
       - name: Terraform Apply
         working-directory: ${{ env.TF_WORKING_DIR }}
         run: |
@@ -125,37 +120,38 @@ jobs:
             -target=module.storage \
             -target=module.database \
             -var="mongodb_atlas_uri=${{ secrets.MONGODB_ATLAS_URI }}"
-
+ 
       - name: Show outputs
         working-directory: ${{ env.TF_WORKING_DIR }}
         run: terraform output
-
+ 
   # ---------------------------------------------------------------
-  # STANDALONE: terraform destroy (requires typed confirmation)
+  # Terraform destroy (manual only, requires typed confirmation)
   # ---------------------------------------------------------------
   terraform-destroy:
     name: Terraform Destroy
     runs-on: ubuntu-latest
-    if: github.event.inputs.action == 'destroy' && github.event.inputs.confirm_destroy == 'destroy'
+    if: github.event_name == 'workflow_dispatch' && github.event.inputs.confirm_destroy == 'destroy'
     steps:
       - uses: actions/checkout@v4
-
+ 
       - uses: aws-actions/configure-aws-credentials@v4
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ env.AWS_REGION }}
-
+ 
       - uses: hashicorp/setup-terraform@v3
         with:
           terraform_version: ${{ env.TF_VERSION }}
-
+ 
       - name: Terraform Init
         working-directory: ${{ env.TF_WORKING_DIR }}
         run: terraform init
-
+ 
       - name: Terraform Destroy
         working-directory: ${{ env.TF_WORKING_DIR }}
         run: |
           terraform destroy -auto-approve \
             -var="mongodb_atlas_uri=${{ secrets.MONGODB_ATLAS_URI }}"
+ 

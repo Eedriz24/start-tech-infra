@@ -15,10 +15,6 @@ override.tf.json
 # macOS
 .DS_Store
 
-# Editor/IDE
-.vscode/
-.idea/
-*.swp
 
 # Environment / secrets
 *.env
