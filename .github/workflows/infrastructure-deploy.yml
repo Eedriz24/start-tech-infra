@@ -106,6 +106,10 @@ jobs:
       - uses: hashicorp/setup-terraform@v3
         with:
           terraform_version: ${{ env.TF_VERSION }}
+ 
+      - name: Terraform Init
+        working-directory: ${{ env.TF_WORKING_DIR }}
+        run: terraform init
 
       - name: Terraform Init
         working-directory: ${{ env.TF_WORKING_DIR }}
