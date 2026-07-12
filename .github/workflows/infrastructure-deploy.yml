@@ -106,10 +106,29 @@ jobs:
       - uses: hashicorp/setup-terraform@v3
         with:
           terraform_version: ${{ env.TF_VERSION }}
- 
+
       - name: Terraform Init
         working-directory: ${{ env.TF_WORKING_DIR }}
         run: terraform init
+
+      - name: Reconcile drifted resources (import if exists in AWS but not in state)
+        working-directory: ${{ env.TF_WORKING_DIR }}
+        run: |
+          import_if_missing() {
+            local address="$1"
+            local id="$2"
+            if terraform state list | grep -qx "$address"; then
+              echo "Already in state: $address"
+            else
+              echo "Not in state, attempting import: $address ($id)"
+              terraform import "$address" "$id" || echo "Import failed or resource doesn't exist yet — will be created fresh: $address"
+            fi
+          }
+
+          import_if_missing "module.database.aws_elasticache_subnet_group.starttech" "starttech-redis-subnet-group"
+          import_if_missing "module.eks.aws_iam_role.eks_cluster_role" "starttech-eks-cluster-role"
+          import_if_missing "module.eks.aws_iam_role.eks_node_role" "starttech-eks-node-role"
+          import_if_missing "module.storage.aws_ecr_repository.starttech-backend-api" "starttech-backend-api"
  
       - name: Terraform Apply
         working-directory: ${{ env.TF_WORKING_DIR }}
