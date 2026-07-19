@@ -84,7 +84,7 @@ jobs:
             -target=module.eks \
             -target=module.storage \
             -target=module.database \
-            -var="mongodb_atlas_uri=${{ secrets.MONGODB_ATLAS_URI }}"
+            -var="mongodb_atlas_uri=${{ secrets.MONGODB_ATLAS_URI }}" \
             -var="ci_iam_user_arn=${{ vars.CI_IAM_USER_ARN }}"
  
   # ---------------------------------------------------------------
