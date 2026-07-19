@@ -40,3 +40,8 @@ variable "node_max_size" {
   type    = number
   default = 4
 }
+
+variable "ci_iam_user_arn" {
+  description = "ARN of the IAM user/role running CI/CD (e.g. GitHub Actions) that needs Kubernetes API access"
+  type        = string
+}

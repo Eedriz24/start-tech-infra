@@ -22,3 +22,8 @@ variable "mongodb_atlas_uri" {
   sensitive   = true
   default     = ""
 }
+
+variable "ci_iam_user_arn" {
+  description = "ARN of the CI IAM user (e.g. github-actions-ci) needing EKS cluster access"
+  type        = string
+}

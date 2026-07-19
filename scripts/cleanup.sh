@@ -1,15 +1,15 @@
-#!/usr/bin/env bash
-#
-# cleanup-orphaned-resources.sh
-#
-# Directly deletes ALL starttech-* resources via AWS CLI, bypassing Terraform
-# entirely (since state is empty/inconsistent with what's actually in AWS).
-# Run this once, then start fresh with `terraform apply` from clean state.
-#
-# ORDER MATTERS for VPC teardown:
-#   node group -> EKS cluster -> NAT gateway -> release EIP -> detach/delete IGW
-#   -> delete non-default subnets -> delete non-main route tables
-#   -> delete non-default security groups -> delete VPC
+# #!/usr/bin/env bash
+# #
+# # cleanup-orphaned-resources.sh
+# #
+# # Directly deletes ALL starttech-* resources via AWS CLI, bypassing Terraform
+# # entirely (since state is empty/inconsistent with what's actually in AWS).
+# # Run this once, then start fresh with `terraform apply` from clean state.
+# #
+# # ORDER MATTERS for VPC teardown:
+# #   node group -> EKS cluster -> NAT gateway -> release EIP -> detach/delete IGW
+# #   -> delete non-default subnets -> delete non-main route tables
+# #   -> delete non-default security groups -> delete VPC
 
 # set -uo pipefail  # NOTE: no -e, we want to continue past individual failures
 
@@ -56,13 +56,11 @@
 #   echo ""
 #   echo "--- Processing VPC: $VPC_ID ---"
 
-#   # Check VPC still exists before proceeding
 #   if ! aws ec2 describe-vpcs --vpc-ids "$VPC_ID" --region "$REGION" &>/dev/null; then
 #     echo "VPC $VPC_ID no longer exists, skipping."
 #     continue
 #   fi
 
-#   # -- NAT Gateways (and their EIPs) --
 #   for nat_id in $(aws ec2 describe-nat-gateways --filter "Name=vpc-id,Values=$VPC_ID" "Name=state,Values=available,pending" --query "NatGateways[].NatGatewayId" --output text --region "$REGION"); do
 #     echo "Deleting NAT gateway: $nat_id"
 #     aws ec2 delete-nat-gateway --nat-gateway-id "$nat_id" --region "$REGION" || true
@@ -73,38 +71,32 @@
 #     sleep 60
 #   fi
 
-#   # -- Release Elastic IPs tagged for this stack --
 #   for alloc_id in $(aws ec2 describe-addresses --filters "Name=tag:Name,Values=starttech-nat-eip" --query "Addresses[].AllocationId" --output text --region "$REGION"); do
 #     echo "Releasing EIP: $alloc_id"
 #     aws ec2 release-address --allocation-id "$alloc_id" --region "$REGION" || true
 #   done
 
-#   # -- Internet Gateway: detach then delete --
 #   for igw_id in $(aws ec2 describe-internet-gateways --filters "Name=attachment.vpc-id,Values=$VPC_ID" --query "InternetGateways[].InternetGatewayId" --output text --region "$REGION"); do
 #     echo "Detaching + deleting IGW: $igw_id"
 #     aws ec2 detach-internet-gateway --internet-gateway-id "$igw_id" --vpc-id "$VPC_ID" --region "$REGION" || true
 #     aws ec2 delete-internet-gateway --internet-gateway-id "$igw_id" --region "$REGION" || true
 #   done
 
-#   # -- Subnets --
 #   for subnet_id in $(aws ec2 describe-subnets --filters "Name=vpc-id,Values=$VPC_ID" --query "Subnets[].SubnetId" --output text --region "$REGION"); do
 #     echo "Deleting subnet: $subnet_id"
 #     aws ec2 delete-subnet --subnet-id "$subnet_id" --region "$REGION" || true
 #   done
 
-#   # -- Route tables (skip main table, it's deleted automatically with the VPC) --
 #   for rt_id in $(aws ec2 describe-route-tables --filters "Name=vpc-id,Values=$VPC_ID" --query "RouteTables[?Associations[0].Main!=\`true\`].RouteTableId" --output text --region "$REGION"); do
 #     echo "Deleting route table: $rt_id"
 #     aws ec2 delete-route-table --route-table-id "$rt_id" --region "$REGION" || true
 #   done
 
-#   # -- Security groups (skip default, it's deleted automatically with the VPC) --
 #   for sg_id in $(aws ec2 describe-security-groups --filters "Name=vpc-id,Values=$VPC_ID" --query "SecurityGroups[?GroupName!='default'].GroupId" --output text --region "$REGION"); do
 #     echo "Deleting security group: $sg_id"
 #     aws ec2 delete-security-group --group-id "$sg_id" --region "$REGION" || true
 #   done
 
-#   # -- Finally, the VPC itself --
 #   echo "Deleting VPC: $VPC_ID"
 #   aws ec2 delete-vpc --vpc-id "$VPC_ID" --region "$REGION" || true
 # done
