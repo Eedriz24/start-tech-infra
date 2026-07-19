@@ -1,5 +1,11 @@
+name: Infrastructure Deploy
 
-name: Infrastructure Deployment 
+# terraform-init, terraform-plan, and terraform-apply are separate standalone
+# jobs (each does its own `terraform init` since GitHub Actions jobs run on
+# fresh runners), but they trigger automatically in sequence on every push to
+# main that touches terraform/**. `needs:` controls the order: init -> plan ->
+# apply. Destroy remains manual-only for safety.
+
 on:
   push:
     branches: [main]
@@ -9,18 +15,19 @@ on:
   workflow_dispatch:
     inputs:
       confirm_destroy:
-        description: 'Type "destroy" to confirm.'
+        description: 'Only used to run destroy. Type "destroy" to confirm.'
         required: false
         type: string
- 
+
 env:
   AWS_REGION: us-east-1
   TF_WORKING_DIR: terraform
   TF_VERSION: "1.7.5"
- 
+  CI_IAM_USER_ARN: "arn:aws:iam::232428703462:user/github-actions-ci"
+
 jobs:
   # ---------------------------------------------------------------
-  #Terraform init + validate
+  # STANDALONE: terraform init + validate
   # ---------------------------------------------------------------
   terraform-init:
     name: Terraform Init
@@ -28,31 +35,31 @@ jobs:
     if: github.event_name == 'push'
     steps:
       - uses: actions/checkout@v4
- 
+
       - uses: aws-actions/configure-aws-credentials@v4
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ env.AWS_REGION }}
- 
+
       - uses: hashicorp/setup-terraform@v3
         with:
           terraform_version: ${{ env.TF_VERSION }}
- 
+
       - name: Terraform Init
         working-directory: ${{ env.TF_WORKING_DIR }}
         run: terraform init
- 
+
       - name: Terraform Fmt Check
         working-directory: ${{ env.TF_WORKING_DIR }}
-        run: terraform fmt -check -recursive || echo "::warning::Formatting issues found — run 'terraform fmt -recursive' locally and commit"
- 
+        run: terraform fmt -check -recursive
+
       - name: Terraform Validate
         working-directory: ${{ env.TF_WORKING_DIR }}
         run: terraform validate
- 
+
   # ---------------------------------------------------------------
-  # Terraform plan
+  # STANDALONE: terraform plan (runs after init succeeds)
   # ---------------------------------------------------------------
   terraform-plan:
     name: Terraform Plan
@@ -61,56 +68,16 @@ jobs:
     if: github.event_name == 'push'
     steps:
       - uses: actions/checkout@v4
- 
+
       - uses: aws-actions/configure-aws-credentials@v4
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ env.AWS_REGION }}
- 
+
       - uses: hashicorp/setup-terraform@v3
         with:
           terraform_version: ${{ env.TF_VERSION }}
- 
-      - name: Terraform Init
-        working-directory: ${{ env.TF_WORKING_DIR }}
-        run: terraform init
- 
-      - name: Terraform Plan
-        working-directory: ${{ env.TF_WORKING_DIR }}
-        run: |
-          terraform plan \
-            -target=module.networking \
-            -target=module.eks \
-            -target=module.storage \
-            -target=module.database \
-            -var="mongodb_atlas_uri=${{ secrets.MONGODB_ATLAS_URI }}" \
-            -var="ci_iam_user_arn=${{ vars.CI_IAM_USER_ARN }}"
- 
-  # ---------------------------------------------------------------
-  # Terraform apply 
-  # ---------------------------------------------------------------
-  terraform-apply:
-    name: Terraform Apply
-    runs-on: ubuntu-latest
-    needs: terraform-plan
-    if: github.event_name == 'push'
-    steps:
-      - uses: actions/checkout@v4
- 
-      - uses: aws-actions/configure-aws-credentials@v4
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{ env.AWS_REGION }}
- 
-      - uses: hashicorp/setup-terraform@v3
-        with:
-          terraform_version: ${{ env.TF_VERSION }}
- 
-      - name: Terraform Init
-        working-directory: ${{ env.TF_WORKING_DIR }}
-        run: terraform init
 
       - name: Terraform Init
         working-directory: ${{ env.TF_WORKING_DIR }}
@@ -126,7 +93,7 @@ jobs:
               echo "Already in state: $address"
             else
               echo "Not in state, attempting import: $address ($id)"
-              terraform import "$address" "$id" || echo "Import failed or resource doesn't exist yet — will be created fresh: $address"
+              terraform import -var="ci_iam_user_arn=${{ env.CI_IAM_USER_ARN }}" "$address" "$id" || echo "Import failed or resource doesn't exist yet — will be created fresh: $address"
             fi
           }
 
@@ -134,7 +101,62 @@ jobs:
           import_if_missing "module.eks.aws_iam_role.eks_cluster_role" "starttech-eks-cluster-role"
           import_if_missing "module.eks.aws_iam_role.eks_node_role" "starttech-eks-node-role"
           import_if_missing "module.storage.aws_ecr_repository.starttech-backend-api" "starttech-backend-api"
- 
+
+      - name: Terraform Plan
+        working-directory: ${{ env.TF_WORKING_DIR }}
+        run: |
+          terraform plan \
+            -target=module.networking \
+            -target=module.eks \
+            -target=module.storage \
+            -target=module.database \
+            -var="mongodb_atlas_uri=${{ secrets.MONGODB_ATLAS_URI }}" \
+            -var="ci_iam_user_arn=${{ env.CI_IAM_USER_ARN }}"
+
+  # ---------------------------------------------------------------
+  # STANDALONE: terraform apply (runs after plan succeeds)
+  # ---------------------------------------------------------------
+  terraform-apply:
+    name: Terraform Apply
+    runs-on: ubuntu-latest
+    needs: terraform-plan
+    if: github.event_name == 'push'
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ${{ env.TF_VERSION }}
+
+      - name: Terraform Init
+        working-directory: ${{ env.TF_WORKING_DIR }}
+        run: terraform init
+
+      - name: Reconcile drifted resources (import if exists in AWS but not in state)
+        working-directory: ${{ env.TF_WORKING_DIR }}
+        run: |
+          import_if_missing() {
+            local address="$1"
+            local id="$2"
+            if terraform state list | grep -qx "$address"; then
+              echo "Already in state: $address"
+            else
+              echo "Not in state, attempting import: $address ($id)"
+              terraform import -var="ci_iam_user_arn=${{ env.CI_IAM_USER_ARN }}" "$address" "$id" || echo "Import failed or resource doesn't exist yet — will be created fresh: $address"
+            fi
+          }
+
+          import_if_missing "module.database.aws_elasticache_subnet_group.starttech" "starttech-redis-subnet-group"
+          import_if_missing "module.eks.aws_iam_role.eks_cluster_role" "starttech-eks-cluster-role"
+          import_if_missing "module.eks.aws_iam_role.eks_node_role" "starttech-eks-node-role"
+          import_if_missing "module.storage.aws_ecr_repository.starttech-backend-api" "starttech-backend-api"
+
       - name: Terraform Apply
         working-directory: ${{ env.TF_WORKING_DIR }}
         run: |
@@ -144,14 +166,14 @@ jobs:
             -target=module.storage \
             -target=module.database \
             -var="mongodb_atlas_uri=${{ secrets.MONGODB_ATLAS_URI }}" \
-            -var="ci_iam_user_arn=${{ vars.CI_IAM_USER_ARN }}"
+            -var="ci_iam_user_arn=${{ env.CI_IAM_USER_ARN }}"
 
       - name: Show outputs
         working-directory: ${{ env.TF_WORKING_DIR }}
         run: terraform output
- 
+
   # ---------------------------------------------------------------
-  # Terraform destroy (manual only, requires typed confirmation)
+  # STANDALONE: terraform destroy (manual only, requires typed confirmation)
   # ---------------------------------------------------------------
   terraform-destroy:
     name: Terraform Destroy
@@ -159,24 +181,43 @@ jobs:
     if: github.event_name == 'workflow_dispatch' && github.event.inputs.confirm_destroy == 'destroy'
     steps:
       - uses: actions/checkout@v4
- 
+
       - uses: aws-actions/configure-aws-credentials@v4
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ env.AWS_REGION }}
- 
+
       - uses: hashicorp/setup-terraform@v3
         with:
           terraform_version: ${{ env.TF_VERSION }}
- 
+
       - name: Terraform Init
         working-directory: ${{ env.TF_WORKING_DIR }}
         run: terraform init
- 
+
+      - name: Reconcile drifted resources (import if exists in AWS but not in state)
+        working-directory: ${{ env.TF_WORKING_DIR }}
+        run: |
+          import_if_missing() {
+            local address="$1"
+            local id="$2"
+            if terraform state list | grep -qx "$address"; then
+              echo "Already in state: $address"
+            else
+              echo "Not in state, attempting import: $address ($id)"
+              terraform import -var="ci_iam_user_arn=${{ env.CI_IAM_USER_ARN }}" "$address" "$id" || echo "Import failed or resource doesn't exist — skipping: $address"
+            fi
+          }
+
+          import_if_missing "module.database.aws_elasticache_subnet_group.starttech" "starttech-redis-subnet-group"
+          import_if_missing "module.eks.aws_iam_role.eks_cluster_role" "starttech-eks-cluster-role"
+          import_if_missing "module.eks.aws_iam_role.eks_node_role" "starttech-eks-node-role"
+          import_if_missing "module.storage.aws_ecr_repository.starttech-backend-api" "starttech-backend-api"
+
       - name: Terraform Destroy
         working-directory: ${{ env.TF_WORKING_DIR }}
         run: |
           terraform destroy -auto-approve \
-            -var="mongodb_atlas_uri=${{ secrets.MONGODB_ATLAS_URI }}"
- 
+            -var="mongodb_atlas_uri=${{ secrets.MONGODB_ATLAS_URI }}" \
+            -var="ci_iam_user_arn=${{ env.CI_IAM_USER_ARN }}"
