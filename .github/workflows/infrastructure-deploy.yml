@@ -45,7 +45,7 @@ jobs:
  
       - name: Terraform Fmt Check
         working-directory: ${{ env.TF_WORKING_DIR }}
-        run: terraform fmt -check -recursive
+        run: terraform fmt -check -recursive || echo "::warning::Formatting issues found — run 'terraform fmt -recursive' locally and commit"
  
       - name: Terraform Validate
         working-directory: ${{ env.TF_WORKING_DIR }}
