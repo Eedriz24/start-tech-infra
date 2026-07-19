@@ -23,7 +23,7 @@ env:
   AWS_REGION: us-east-1
   TF_WORKING_DIR: terraform
   TF_VERSION: "1.7.5"
-  CI_IAM_USER_ARN: "arn:aws:iam::232428703462:user/github-actions-ci"
+  CI_IAM_USER_ARN: "arn:aws:iam::232428703462:user/cicd_user"
 
 jobs:
   # ---------------------------------------------------------------
