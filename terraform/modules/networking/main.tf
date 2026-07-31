@@ -101,12 +101,6 @@ resource "aws_route_table" "private" {
   }
 }
 
-resource "aws_route_table_association" "private" {
-  count          = length(aws_subnet.private)
-  subnet_id      = aws_subnet.private[count.index].id
-  route_table_id = aws_route_table.private.id
-}
-
 # ---------------- Database Subnets (ElastiCache) ----------------
 resource "aws_subnet" "database" {
   count             = length(var.database_subnet_cidrs)
