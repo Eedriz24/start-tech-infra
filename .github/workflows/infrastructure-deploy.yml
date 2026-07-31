@@ -18,6 +18,9 @@ env:
   TF_WORKING_DIR: terraform
   TF_VERSION: "1.7.5"
   CI_IAM_USER_ARN: "arn:aws:iam::232428703462:user/github-actions-ci"
+  EKS_CLUSTER_NAME: "starttech-cluster"
+  EKS_NODE_GROUP_NAME: "starttech-node-group"
+  EKS_ADMIN_POLICY_ARN: "arn:aws:eks::aws:cluster-access-policy/AmazonEKSClusterAdminPolicy"
 
 jobs:
   # ---------------------------------------------------------------
@@ -87,7 +90,7 @@ jobs:
               echo "Already in state: $address"
             else
               echo "Not in state, attempting import: $address ($id)"
-              terraform import -var="ci_iam_user_arn=${{ env.CI_IAM_USER_ARN }}" "$address" "$id" || echo "Import failed or resource doesn't exist yet — will be created fresh: $address"
+              terraform import -var="ci_iam_user_arn=${{ env.CI_IAM_USER_ARN }}" -var="mongodb_atlas_uri=${{ secrets.MONGODB_ATLAS_URI }}" "$address" "$id" || echo "Import failed or resource doesn't exist yet — will be created fresh: $address"
             fi
           }
 
@@ -95,6 +98,28 @@ jobs:
           import_if_missing "module.eks.aws_iam_role.eks_cluster_role" "starttech-eks-cluster-role"
           import_if_missing "module.eks.aws_iam_role.eks_node_role" "starttech-eks-node-role"
           import_if_missing "module.storage.aws_ecr_repository.starttech-backend-api" "starttech-backend-api"
+
+          # --- EKS cluster itself ---
+          import_if_missing "module.eks.aws_eks_cluster.starttech-cluster" "${{ env.EKS_CLUSTER_NAME }}"
+
+          # --- EKS node group: import ID is "cluster_name:node_group_name" ---
+          import_if_missing "module.eks.aws_eks_node_group.starttech-node-group" "${{ env.EKS_CLUSTER_NAME }}:${{ env.EKS_NODE_GROUP_NAME }}"
+
+          # --- EKS access entry: import ID is "cluster_name:principal_arn" ---
+          import_if_missing "module.eks.aws_eks_access_entry.ci_user" "${{ env.EKS_CLUSTER_NAME }}:${{ env.CI_IAM_USER_ARN }}"
+
+          # --- EKS access policy association: import ID is "cluster_name#principal_arn#policy_arn" ---
+          import_if_missing "module.eks.aws_eks_access_policy_association.ci_user_admin" "${{ env.EKS_CLUSTER_NAME }}#${{ env.CI_IAM_USER_ARN }}#${{ env.EKS_ADMIN_POLICY_ARN }}"
+
+          # --- NAT EIP: no deterministic ID, so look it up by tag before importing ---
+          NAT_EIP_ALLOC_ID=$(aws ec2 describe-addresses \
+            --filters "Name=tag:Name,Values=starttech-nat-eip" \
+            --query "Addresses[0].AllocationId" --output text 2>/dev/null || echo "None")
+          if [ "$NAT_EIP_ALLOC_ID" != "None" ] && [ -n "$NAT_EIP_ALLOC_ID" ]; then
+            import_if_missing "module.networking.aws_eip.nat" "$NAT_EIP_ALLOC_ID"
+          else
+            echo "No existing tagged NAT EIP found in AWS — will be created fresh if needed"
+          fi
 
       - name: Terraform Plan
         working-directory: ${{ env.TF_WORKING_DIR }}
@@ -142,7 +167,7 @@ jobs:
               echo "Already in state: $address"
             else
               echo "Not in state, attempting import: $address ($id)"
-              terraform import -var="ci_iam_user_arn=${{ env.CI_IAM_USER_ARN }}" "$address" "$id" || echo "Import failed or resource doesn't exist yet — will be created fresh: $address"
+              terraform import -var="ci_iam_user_arn=${{ env.CI_IAM_USER_ARN }}" -var="mongodb_atlas_uri=${{ secrets.MONGODB_ATLAS_URI }}" "$address" "$id" || echo "Import failed or resource doesn't exist yet — will be created fresh: $address"
             fi
           }
 
@@ -150,6 +175,28 @@ jobs:
           import_if_missing "module.eks.aws_iam_role.eks_cluster_role" "starttech-eks-cluster-role"
           import_if_missing "module.eks.aws_iam_role.eks_node_role" "starttech-eks-node-role"
           import_if_missing "module.storage.aws_ecr_repository.starttech-backend-api" "starttech-backend-api"
+
+          # --- EKS cluster itself ---
+          import_if_missing "module.eks.aws_eks_cluster.starttech-cluster" "${{ env.EKS_CLUSTER_NAME }}"
+
+          # --- EKS node group: import ID is "cluster_name:node_group_name" ---
+          import_if_missing "module.eks.aws_eks_node_group.starttech-node-group" "${{ env.EKS_CLUSTER_NAME }}:${{ env.EKS_NODE_GROUP_NAME }}"
+
+          # --- EKS access entry: import ID is "cluster_name:principal_arn" ---
+          import_if_missing "module.eks.aws_eks_access_entry.ci_user" "${{ env.EKS_CLUSTER_NAME }}:${{ env.CI_IAM_USER_ARN }}"
+
+          # --- EKS access policy association: import ID is "cluster_name#principal_arn#policy_arn" ---
+          import_if_missing "module.eks.aws_eks_access_policy_association.ci_user_admin" "${{ env.EKS_CLUSTER_NAME }}#${{ env.CI_IAM_USER_ARN }}#${{ env.EKS_ADMIN_POLICY_ARN }}"
+
+          # --- NAT EIP: no deterministic ID, so look it up by tag before importing ---
+          NAT_EIP_ALLOC_ID=$(aws ec2 describe-addresses \
+            --filters "Name=tag:Name,Values=starttech-nat-eip" \
+            --query "Addresses[0].AllocationId" --output text 2>/dev/null || echo "None")
+          if [ "$NAT_EIP_ALLOC_ID" != "None" ] && [ -n "$NAT_EIP_ALLOC_ID" ]; then
+            import_if_missing "module.networking.aws_eip.nat" "$NAT_EIP_ALLOC_ID"
+          else
+            echo "No existing tagged NAT EIP found in AWS — will be created fresh if needed"
+          fi
 
       - name: Terraform Apply
         working-directory: ${{ env.TF_WORKING_DIR }}
@@ -200,7 +247,7 @@ jobs:
               echo "Already in state: $address"
             else
               echo "Not in state, attempting import: $address ($id)"
-              terraform import -var="ci_iam_user_arn=${{ env.CI_IAM_USER_ARN }}" "$address" "$id" || echo "Import failed or resource doesn't exist — skipping: $address"
+              terraform import -var="ci_iam_user_arn=${{ env.CI_IAM_USER_ARN }}" -var="mongodb_atlas_uri=${{ secrets.MONGODB_ATLAS_URI }}" "$address" "$id" || echo "Import failed or resource doesn't exist — skipping: $address"
             fi
           }
 
@@ -208,6 +255,10 @@ jobs:
           import_if_missing "module.eks.aws_iam_role.eks_cluster_role" "starttech-eks-cluster-role"
           import_if_missing "module.eks.aws_iam_role.eks_node_role" "starttech-eks-node-role"
           import_if_missing "module.storage.aws_ecr_repository.starttech-backend-api" "starttech-backend-api"
+          import_if_missing "module.eks.aws_eks_cluster.starttech-cluster" "${{ env.EKS_CLUSTER_NAME }}"
+          import_if_missing "module.eks.aws_eks_node_group.starttech-node-group" "${{ env.EKS_CLUSTER_NAME }}:${{ env.EKS_NODE_GROUP_NAME }}"
+          import_if_missing "module.eks.aws_eks_access_entry.ci_user" "${{ env.EKS_CLUSTER_NAME }}:${{ env.CI_IAM_USER_ARN }}"
+          import_if_missing "module.eks.aws_eks_access_policy_association.ci_user_admin" "${{ env.EKS_CLUSTER_NAME }}#${{ env.CI_IAM_USER_ARN }}#${{ env.EKS_ADMIN_POLICY_ARN }}"
 
       - name: Terraform Destroy
         working-directory: ${{ env.TF_WORKING_DIR }}
