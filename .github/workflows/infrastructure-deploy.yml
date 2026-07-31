@@ -1,11 +1,4 @@
 name: Infrastructure Deploy
-
-# terraform-init, terraform-plan, and terraform-apply are separate standalone
-# jobs (each does its own `terraform init` since GitHub Actions jobs run on
-# fresh runners), but they trigger automatically in sequence on every push to
-# main that touches terraform/**. `needs:` controls the order: init -> plan ->
-# apply. Destroy remains manual-only for safety.
-
 on:
   push:
     branches: [main]
@@ -23,7 +16,7 @@ env:
   AWS_REGION: us-east-1
   TF_WORKING_DIR: terraform
   TF_VERSION: "1.7.5"
-  CI_IAM_USER_ARN: "arn:aws:iam::232428703462:user/cicd_user"
+  #CI_IAM_USER_ARN: "arn:aws:iam::232428703462:user/github-actions-ci"
 
 jobs:
   # ---------------------------------------------------------------
@@ -93,7 +86,7 @@ jobs:
               echo "Already in state: $address"
             else
               echo "Not in state, attempting import: $address ($id)"
-              terraform import -var="ci_iam_user_arn=${{ env.CI_IAM_USER_ARN }}" "$address" "$id" || echo "Import failed or resource doesn't exist yet — will be created fresh: $address"
+              echo "Import failed or resource doesn't exist yet — will be created fresh: $address"
             fi
           }
 
@@ -148,7 +141,7 @@ jobs:
               echo "Already in state: $address"
             else
               echo "Not in state, attempting import: $address ($id)"
-              terraform import -var="ci_iam_user_arn=${{ env.CI_IAM_USER_ARN }}" "$address" "$id" || echo "Import failed or resource doesn't exist yet — will be created fresh: $address"
+              echo "Import failed or resource doesn't exist yet — will be created fresh: $address"
             fi
           }
 
@@ -206,7 +199,7 @@ jobs:
               echo "Already in state: $address"
             else
               echo "Not in state, attempting import: $address ($id)"
-              terraform import -var="ci_iam_user_arn=${{ env.CI_IAM_USER_ARN }}" "$address" "$id" || echo "Import failed or resource doesn't exist — skipping: $address"
+              echo "Import failed or resource doesn't exist — skipping: $address"
             fi
           }
 
@@ -219,5 +212,6 @@ jobs:
         working-directory: ${{ env.TF_WORKING_DIR }}
         run: |
           terraform destroy -auto-approve \
-            -var="mongodb_atlas_uri=${{ secrets.MONGODB_ATLAS_URI }}" \
-            -var="ci_iam_user_arn=${{ env.CI_IAM_USER_ARN }}"
+            -var="mongodb_atlas_uri=${{ secrets.MONGODB_ATLAS_URI }}" 
+  #-var="ci_iam_user_arn=
+  
