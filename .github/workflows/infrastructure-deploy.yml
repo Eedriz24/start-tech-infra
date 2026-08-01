@@ -132,6 +132,9 @@ jobs:
             -var="mongodb_atlas_uri=${{ secrets.MONGODB_ATLAS_URI }}" \
             -var="ci_iam_user_arn=${{ env.CI_IAM_USER_ARN }}"
 
+      - name: Debug caller identity
+        run: aws sts get-caller-identity
+
   # ---------------------------------------------------------------
   # STANDALONE: terraform apply (runs after plan succeeds)
   # ---------------------------------------------------------------
@@ -153,9 +156,8 @@ jobs:
         with:
           terraform_version: ${{ env.TF_VERSION }}
 
-      - name: Terraform Init
-        working-directory: ${{ env.TF_WORKING_DIR }}
-        run: terraform init
+      - name: Debug caller identity
+        run: aws sts get-caller-identity
 
       - name: Reconcile drifted resources (import if exists in AWS but not in state)
         working-directory: ${{ env.TF_WORKING_DIR }}
