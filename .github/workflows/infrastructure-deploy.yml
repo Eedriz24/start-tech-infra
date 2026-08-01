@@ -156,6 +156,10 @@ jobs:
         with:
           terraform_version: ${{ env.TF_VERSION }}
 
+      - name: Terraform Init
+        working-directory: ${{ env.TF_WORKING_DIR }}
+        run: terraform init
+
       - name: Debug caller identity
         run: aws sts get-caller-identity
 
