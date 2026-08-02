@@ -32,3 +32,10 @@ variable "cluster_name" {
   type        = string
   default     = "starttech-cluster"
 }
+
+
+variable "ci_iam_user_arn" {
+  description = "ARN of the CI IAM user (e.g. github-actions-ci) needing EKS cluster access"
+  type        = string
+  default     = "arn:aws:iam::232428703462:user/github-actions-ci"
+}

@@ -16,8 +16,8 @@ on:
 env:
   AWS_REGION: us-east-1
   TF_WORKING_DIR: terraform
-  TF_VERSION: "1.7.5"
-  CI_IAM_USER_ARN: "arn:aws:iam::232428703462:user/github-actions-ci"
+  TF_VERSION: "1.10.0"
+  CI_IAM_USER_ARN: "arn:aws:iam::232428703462:user/cicd_user"
   EKS_CLUSTER_NAME: "starttech-cluster"
   EKS_NODE_GROUP_NAME: "starttech-node-group"
   EKS_ADMIN_POLICY_ARN: "arn:aws:eks::aws:cluster-access-policy/AmazonEKSClusterAdminPolicy"
@@ -132,9 +132,6 @@ jobs:
             -var="mongodb_atlas_uri=${{ secrets.MONGODB_ATLAS_URI }}" \
             -var="ci_iam_user_arn=${{ env.CI_IAM_USER_ARN }}"
 
-      - name: Debug caller identity
-        run: aws sts get-caller-identity
-
   # ---------------------------------------------------------------
   # STANDALONE: terraform apply (runs after plan succeeds)
   # ---------------------------------------------------------------
@@ -159,9 +156,6 @@ jobs:
       - name: Terraform Init
         working-directory: ${{ env.TF_WORKING_DIR }}
         run: terraform init
-
-      - name: Debug caller identity
-        run: aws sts get-caller-identity
 
       - name: Reconcile drifted resources (import if exists in AWS but not in state)
         working-directory: ${{ env.TF_WORKING_DIR }}
