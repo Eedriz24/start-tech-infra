@@ -105,9 +105,6 @@ jobs:
           # --- EKS node group: import ID is "cluster_name:node_group_name" ---
           import_if_missing "module.eks.aws_eks_node_group.starttech-node-group" "${{ env.EKS_CLUSTER_NAME }}:${{ env.EKS_NODE_GROUP_NAME }}"
 
-          # --- EKS access entry: import ID is "cluster_name:principal_arn" ---
-          import_if_missing "module.eks.aws_eks_access_entry.ci_user" "${{ env.EKS_CLUSTER_NAME }}:${{ env.CI_IAM_USER_ARN }}"
-
           # --- EKS access policy association: import ID is "cluster_name#principal_arn#policy_arn" ---
           import_if_missing "module.eks.aws_eks_access_policy_association.ci_user_admin" "${{ env.EKS_CLUSTER_NAME }}#${{ env.CI_IAM_USER_ARN }}#${{ env.EKS_ADMIN_POLICY_ARN }}"
 
@@ -182,9 +179,6 @@ jobs:
           # --- EKS node group: import ID is "cluster_name:node_group_name" ---
           import_if_missing "module.eks.aws_eks_node_group.starttech-node-group" "${{ env.EKS_CLUSTER_NAME }}:${{ env.EKS_NODE_GROUP_NAME }}"
 
-          # --- EKS access entry: import ID is "cluster_name:principal_arn" ---
-          import_if_missing "module.eks.aws_eks_access_entry.ci_user" "${{ env.EKS_CLUSTER_NAME }}:${{ env.CI_IAM_USER_ARN }}"
-
           # --- EKS access policy association: import ID is "cluster_name#principal_arn#policy_arn" ---
           import_if_missing "module.eks.aws_eks_access_policy_association.ci_user_admin" "${{ env.EKS_CLUSTER_NAME }}#${{ env.CI_IAM_USER_ARN }}#${{ env.EKS_ADMIN_POLICY_ARN }}"
 
@@ -257,7 +251,6 @@ jobs:
           import_if_missing "module.storage.aws_ecr_repository.starttech-backend-api" "starttech-backend-api"
           import_if_missing "module.eks.aws_eks_cluster.starttech-cluster" "${{ env.EKS_CLUSTER_NAME }}"
           import_if_missing "module.eks.aws_eks_node_group.starttech-node-group" "${{ env.EKS_CLUSTER_NAME }}:${{ env.EKS_NODE_GROUP_NAME }}"
-          import_if_missing "module.eks.aws_eks_access_entry.ci_user" "${{ env.EKS_CLUSTER_NAME }}:${{ env.CI_IAM_USER_ARN }}"
           import_if_missing "module.eks.aws_eks_access_policy_association.ci_user_admin" "${{ env.EKS_CLUSTER_NAME }}#${{ env.CI_IAM_USER_ARN }}#${{ env.EKS_ADMIN_POLICY_ARN }}"
 
       - name: Terraform Destroy

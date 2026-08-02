@@ -124,11 +124,11 @@ resource "aws_iam_openid_connect_provider" "eks" {
 # other IAM user/role (like a GitHub Actions CI user) is authenticated by AWS
 # but rejected by the Kubernetes API server itself (a separate authorization
 # layer on top of IAM).
-resource "aws_eks_access_entry" "ci_user" {
-  cluster_name  = aws_eks_cluster.starttech-cluster.name
-  principal_arn = var.ci_iam_user_arn
-  type          = "STANDARD"
-}
+# resource "aws_eks_access_entry" "ci_user" {
+#   cluster_name  = aws_eks_cluster.starttech-cluster.name
+#   principal_arn = var.ci_iam_user_arn
+#   type          = "STANDARD"
+# }
 
 resource "aws_eks_access_policy_association" "ci_user_admin" {
   cluster_name  = aws_eks_cluster.starttech-cluster.name
@@ -138,4 +138,29 @@ resource "aws_eks_access_policy_association" "ci_user_admin" {
   access_scope {
     type = "cluster"
   }
+}
+
+resource "aws_eks_addon" "vpc_cni" {
+  cluster_name  = aws_eks_cluster.starttech-cluster.name
+  addon_name    = "vpc-cni"
+  resolve_conflicts_on_create = "OVERWRITE"
+  resolve_conflicts_on_update = "OVERWRITE"
+}
+
+resource "aws_eks_addon" "kube_proxy" {
+  cluster_name  = aws_eks_cluster.starttech-cluster.name
+  addon_name    = "kube-proxy"
+  resolve_conflicts_on_create = "OVERWRITE"
+  resolve_conflicts_on_update = "OVERWRITE"
+}
+
+resource "aws_eks_addon" "coredns" {
+  cluster_name  = aws_eks_cluster.starttech-cluster.name
+  addon_name    = "coredns"
+  resolve_conflicts_on_create = "OVERWRITE"
+  resolve_conflicts_on_update = "OVERWRITE"
+
+  # CoreDNS needs at least one Ready node to schedule its pods —
+  # install it after the node group is up, not alongside cluster creation.
+  depends_on = [aws_eks_node_group.starttech-node-group]
 }
