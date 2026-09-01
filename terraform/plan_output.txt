@@ -1,0 +1,683 @@
+module.storage.random_id.suffix: Refreshing state... [id=4KC1Tg]
+module.networking.aws_route_table_association.private[1]: Refreshing state... [id=rtbassoc-0a9635d20cff9b3f4]
+module.networking.aws_route_table_association.private[0]: Refreshing state... [id=rtbassoc-09f4060935169b458]
+module.eks.aws_iam_role.eks_cluster_role: Refreshing state... [id=starttech-eks-cluster-role]
+module.storage.aws_ecr_repository.starttech-backend-api: Refreshing state... [id=starttech-backend-api]
+module.eks.aws_iam_role.eks_node_role: Refreshing state... [id=starttech-eks-node-role]
+module.networking.aws_eip.nat: Refreshing state... [id=eipalloc-0bb2e1503f2d4dc48]
+module.networking.aws_vpc.starttech-vpc: Refreshing state... [id=vpc-0bf9c30284d726b50]
+module.networking.data.aws_availability_zones.available: Reading...
+module.storage.aws_s3_bucket.starttech-frontend-bucket: Refreshing state... [id=starttech-frontend-bucket-e0a0b54e]
+module.networking.data.aws_availability_zones.available: Read complete after 1s [id=us-east-1]
+module.networking.aws_internet_gateway.this: Refreshing state... [id=igw-03d9bbb5edb978a31]
+module.networking.aws_subnet.database[1]: Refreshing state... [id=subnet-04338077945416021]
+module.networking.aws_subnet.database[0]: Refreshing state... [id=subnet-0b5abe6e810eda9a1]
+module.networking.aws_subnet.public[0]: Refreshing state... [id=subnet-061be10a825e829d1]
+module.networking.aws_subnet.public[1]: Refreshing state... [id=subnet-0e7e8f00add4206dd]
+module.networking.aws_subnet.private[1]: Refreshing state... [id=subnet-01f847154af90e272]
+module.networking.aws_subnet.private[0]: Refreshing state... [id=subnet-06a32c0e640576e8d]
+module.networking.aws_route_table.public: Refreshing state... [id=rtb-04fbd42728a9a86f0]
+module.database.aws_elasticache_subnet_group.starttech: Refreshing state... [id=starttech-redis-subnet-group]
+module.eks.aws_iam_role_policy_attachment.eks_worker_node_policy: Refreshing state... [id=starttech-eks-node-role-20260719151906159400000002]
+module.eks.aws_iam_role_policy_attachment.eks_ecr_readonly_policy: Refreshing state... [id=starttech-eks-node-role-20260719151906167300000003]
+module.eks.aws_iam_role_policy_attachment.eks_cni_policy: Refreshing state... [id=starttech-eks-node-role-20260719151906179500000004]
+module.eks.aws_iam_role_policy_attachment.eks_cluster_policy: Refreshing state... [id=starttech-eks-cluster-role-20260719151906154600000001]
+module.networking.aws_nat_gateway.this: Refreshing state... [id=nat-0938238b5fd72a0cd]
+module.eks.aws_eks_cluster.starttech-cluster: Refreshing state... [id=starttech-cluster]
+module.networking.aws_route_table_association.public[1]: Refreshing state... [id=rtbassoc-009056b526cd09cc9]
+module.networking.aws_route_table_association.public[0]: Refreshing state... [id=rtbassoc-0ed0290c86ff60596]
+module.networking.aws_route_table.private: Refreshing state... [id=rtb-099ad53a423e63b43]
+module.eks.aws_eks_access_entry.ci_user: Refreshing state... [id=starttech-cluster:arn:aws:iam::232428703462:user/cicd_user]
+module.eks.aws_eks_access_policy_association.ci_user_admin: Refreshing state... [id=starttech-cluster#arn:aws:iam::232428703462:user/cicd_user#arn:aws:eks::aws:cluster-access-policy/AmazonEKSClusterAdminPolicy]
+module.eks.aws_eks_node_group.starttech-node-group: Refreshing state... [id=starttech-cluster:starttech-node-group]
+module.eks.aws_iam_openid_connect_provider.eks: Refreshing state... [id=arn:aws:iam::232428703462:oidc-provider/oidc.eks.us-east-1.amazonaws.com/id/59BE7F50F59E3D0000E0672888CD29E3]
+module.database.aws_security_group.redis: Refreshing state... [id=sg-02f48ef6b1d4504f7]
+module.networking.aws_route_table_association.database[1]: Refreshing state... [id=rtbassoc-0888ef3544ec9f29e]
+module.networking.aws_route_table_association.database[0]: Refreshing state... [id=rtbassoc-0421529a8a8a6bbf0]
+module.database.aws_elasticache_cluster.starttech-redis: Refreshing state... [id=starttech-redis]
+module.storage.aws_s3_bucket_public_access_block.frontend: Refreshing state... [id=starttech-frontend-bucket-e0a0b54e]
+module.storage.aws_s3_bucket_versioning.frontend: Refreshing state... [id=starttech-frontend-bucket-e0a0b54e]
+module.storage.aws_s3_bucket_server_side_encryption_configuration.frontend: Refreshing state... [id=starttech-frontend-bucket-e0a0b54e]
+
+Note: Objects have changed outside of Terraform
+
+Terraform detected the following changes made outside of Terraform since the
+last "terraform apply" which may have affected this plan:
+
+  # module.database.aws_elasticache_cluster.starttech-redis has changed
+  ~ resource "aws_elasticache_cluster" "starttech-redis" {
+      ~ cache_nodes                = [
+          ~ {
+              ~ availability_zone = "us-east-1a" -> "us-east-1b"
+                id                = "0001"
+                # (3 unchanged attributes hidden)
+            },
+        ]
+        id                         = "starttech-redis"
+        tags                       = {
+            "Name" = "starttech-redis"
+        }
+        # (23 unchanged attributes hidden)
+    }
+
+  # module.database.aws_security_group.redis has been deleted
+  - resource "aws_security_group" "redis" {
+      - id          = "sg-02f48ef6b1d4504f7" -> null
+        name        = "starttech-redis-sg"
+        tags        = {
+            "Name" = "starttech-redis-sg"
+        }
+        # (8 unchanged attributes hidden)
+    }
+
+  # module.eks.aws_eks_cluster.starttech-cluster has changed
+  ~ resource "aws_eks_cluster" "starttech-cluster" {
+      ~ endpoint                      = "https://59BE7F50F59E3D0000E0672888CD29E3.gr7.us-east-1.eks.amazonaws.com" -> "https://0AEC2F66F0BFA32CCE730EADF9AD1396.sk1.us-east-1.eks.amazonaws.com"
+        id                            = "starttech-cluster"
+      ~ identity                      = [
+          ~ {
+              ~ oidc = [
+                  ~ {
+                      ~ issuer = "https://oidc.eks.us-east-1.amazonaws.com/id/59BE7F50F59E3D0000E0672888CD29E3" -> "https://oidc.eks.us-east-1.amazonaws.com/id/0AEC2F66F0BFA32CCE730EADF9AD1396"
+                    },
+                ]
+            },
+        ]
+        name                          = "starttech-cluster"
+        tags                          = {
+            "Name" = "starttech-cluster"
+        }
+        # (10 unchanged attributes hidden)
+
+      ~ vpc_config {
+          ~ cluster_security_group_id = "sg-0853426b17cae0307" -> "sg-0375ddb7001b9e3d1"
+            # (6 unchanged attributes hidden)
+        }
+
+        # (3 unchanged blocks hidden)
+    }
+
+  # module.networking.aws_eip.nat has been deleted
+  - resource "aws_eip" "nat" {
+      - id                       = "eipalloc-0bb2e1503f2d4dc48" -> null
+        tags                     = {
+            "Name" = "starttech-nat-eip"
+        }
+        # (18 unchanged attributes hidden)
+    }
+
+  # module.networking.aws_internet_gateway.this has been deleted
+  - resource "aws_internet_gateway" "this" {
+      - id       = "igw-03d9bbb5edb978a31" -> null
+        tags     = {
+            "Name" = "starttech-igw"
+        }
+        # (4 unchanged attributes hidden)
+    }
+
+  # module.networking.aws_nat_gateway.this has been deleted
+  - resource "aws_nat_gateway" "this" {
+      - id                                 = "nat-0938238b5fd72a0cd" -> null
+        tags                               = {
+            "Name" = "starttech-nat"
+        }
+        # (11 unchanged attributes hidden)
+    }
+
+  # module.networking.aws_route_table.private has been deleted
+  - resource "aws_route_table" "private" {
+      - id               = "rtb-099ad53a423e63b43" -> null
+        tags             = {
+            "Name" = "starttech-private-rt"
+        }
+        # (6 unchanged attributes hidden)
+    }
+
+  # module.networking.aws_route_table.public has been deleted
+  - resource "aws_route_table" "public" {
+      - id               = "rtb-04fbd42728a9a86f0" -> null
+        tags             = {
+            "Name" = "starttech-public-rt"
+        }
+        # (6 unchanged attributes hidden)
+    }
+
+  # module.networking.aws_subnet.public[0] has been deleted
+  - resource "aws_subnet" "public" {
+      - id                                             = "subnet-061be10a825e829d1" -> null
+        tags                                           = {
+            "Name"                                    = "starttech-public-0"
+            "kubernetes.io/cluster/starttech-cluster" = "shared"
+            "kubernetes.io/role/elb"                  = "1"
+        }
+        # (20 unchanged attributes hidden)
+    }
+
+  # module.networking.aws_vpc.starttech-vpc has been deleted
+  - resource "aws_vpc" "starttech-vpc" {
+      - id                                   = "vpc-0bf9c30284d726b50" -> null
+        tags                                 = {
+            "Name" = "starttech-vpc"
+        }
+        # (19 unchanged attributes hidden)
+    }
+
+
+Unless you have made equivalent changes to your configuration, or ignored the
+relevant attributes using ignore_changes, the following plan may include
+actions to undo or respond to these changes.
+
+─────────────────────────────────────────────────────────────────────────────
+
+Terraform used the selected providers to generate the following execution
+plan. Resource actions are indicated with the following symbols:
+  + create
+  ~ update in-place
+-/+ destroy and then create replacement
+ <= read (data resources)
+
+Terraform will perform the following actions:
+
+  # module.database.aws_elasticache_cluster.starttech-redis will be updated in-place
+  ~ resource "aws_elasticache_cluster" "starttech-redis" {
+        id                         = "starttech-redis"
+      ~ security_group_ids         = [
+          - "sg-03add1a81000242e2",
+        ] -> (known after apply)
+        tags                       = {
+            "Name" = "starttech-redis"
+        }
+        # (23 unchanged attributes hidden)
+    }
+
+  # module.database.aws_elasticache_subnet_group.starttech will be updated in-place
+  ~ resource "aws_elasticache_subnet_group" "starttech" {
+        id          = "starttech-redis-subnet-group"
+        name        = "starttech-redis-subnet-group"
+      ~ subnet_ids  = [
+          - "subnet-003b20fb159b0b39c",
+          - "subnet-047bde93bc1daee84",
+        ] -> (known after apply)
+        tags        = {}
+        # (4 unchanged attributes hidden)
+    }
+
+  # module.database.aws_security_group.redis will be created
+  + resource "aws_security_group" "redis" {
+      + arn                    = (known after apply)
+      + description            = "Allow Redis traffic only from EKS worker nodes"
+      + egress                 = [
+          + {
+              + cidr_blocks      = [
+                  + "0.0.0.0/0",
+                ]
+              + from_port        = 0
+              + ipv6_cidr_blocks = []
+              + prefix_list_ids  = []
+              + protocol         = "-1"
+              + security_groups  = []
+              + self             = false
+              + to_port          = 0
+                # (1 unchanged attribute hidden)
+            },
+        ]
+      + id                     = (known after apply)
+      + ingress                = [
+          + {
+              + cidr_blocks      = []
+              + description      = "Redis from EKS workers"
+              + from_port        = 6379
+              + ipv6_cidr_blocks = []
+              + prefix_list_ids  = []
+              + protocol         = "tcp"
+              + security_groups  = [
+                  + "sg-0375ddb7001b9e3d1",
+                ]
+              + self             = false
+              + to_port          = 6379
+            },
+        ]
+      + name                   = "starttech-redis-sg"
+      + name_prefix            = (known after apply)
+      + owner_id               = (known after apply)
+      + revoke_rules_on_delete = false
+      + tags                   = {
+          + "Name" = "starttech-redis-sg"
+        }
+      + tags_all               = {
+          + "Name" = "starttech-redis-sg"
+        }
+      + vpc_id                 = (known after apply)
+    }
+
+  # module.eks.data.tls_certificate.eks will be read during apply
+  # (depends on a resource or a module with changes pending)
+ <= data "tls_certificate" "eks" {
+      + certificates = (known after apply)
+      + id           = (known after apply)
+      + url          = "https://oidc.eks.us-east-1.amazonaws.com/id/0AEC2F66F0BFA32CCE730EADF9AD1396"
+    }
+
+  # module.eks.aws_eks_cluster.starttech-cluster will be updated in-place
+  ~ resource "aws_eks_cluster" "starttech-cluster" {
+        id                            = "starttech-cluster"
+        name                          = "starttech-cluster"
+        tags                          = {
+            "Name" = "starttech-cluster"
+        }
+        # (12 unchanged attributes hidden)
+
+      ~ vpc_config {
+          ~ subnet_ids                = [
+              - "subnet-009a8bb7fc12dc6a8",
+              - "subnet-03642f5fa4075a89a",
+              - "subnet-0878c991055735067",
+              - "subnet-0e6dbb85855bf5f4e",
+            ] -> (known after apply)
+            # (6 unchanged attributes hidden)
+        }
+
+        # (3 unchanged blocks hidden)
+    }
+
+  # module.eks.aws_eks_node_group.starttech-node-group must be replaced
+-/+ resource "aws_eks_node_group" "starttech-node-group" {
+      ~ ami_type               = "AL2023_x86_64_STANDARD" -> (known after apply)
+      ~ arn                    = "arn:aws:eks:us-east-1:232428703462:nodegroup/starttech-cluster/starttech-node-group/c4cfdf03-abf9-c624-425f-a327f75a956f" -> (known after apply)
+      ~ capacity_type          = "ON_DEMAND" -> (known after apply)
+      ~ disk_size              = 20 -> (known after apply)
+      ~ id                     = "starttech-cluster:starttech-node-group" -> (known after apply)
+      - labels                 = {} -> null
+      + node_group_name_prefix = (known after apply)
+      ~ release_version        = "1.34.9-20260728" -> (known after apply)
+      ~ resources              = [
+          - {
+              - autoscaling_groups              = [
+                  - {
+                      - name = "eks-starttech-node-group-c4cfdf03-abf9-c624-425f-a327f75a956f"
+                    },
+                ]
+                # (1 unchanged attribute hidden)
+            },
+        ] -> (known after apply)
+      ~ status                 = "CREATE_FAILED" -> (known after apply)
+      ~ subnet_ids             = [
+          - "subnet-0878c991055735067",
+          - "subnet-0e6dbb85855bf5f4e",
+        ] -> (known after apply) # forces replacement
+        tags                   = {
+            "Name" = "starttech-node-group"
+        }
+      ~ version                = "1.34" -> (known after apply)
+        # (5 unchanged attributes hidden)
+
+      ~ node_repair_config (known after apply)
+
+      ~ update_config (known after apply)
+      - update_config {
+          - max_unavailable            = 1 -> null
+          - max_unavailable_percentage = 0 -> null
+        }
+
+        # (1 unchanged block hidden)
+    }
+
+  # module.eks.aws_iam_openid_connect_provider.eks must be replaced
+-/+ resource "aws_iam_openid_connect_provider" "eks" {
+      ~ arn             = "arn:aws:iam::232428703462:oidc-provider/oidc.eks.us-east-1.amazonaws.com/id/59BE7F50F59E3D0000E0672888CD29E3" -> (known after apply)
+      ~ id              = "arn:aws:iam::232428703462:oidc-provider/oidc.eks.us-east-1.amazonaws.com/id/59BE7F50F59E3D0000E0672888CD29E3" -> (known after apply)
+      - tags            = {} -> null
+      ~ tags_all        = {} -> (known after apply)
+      ~ thumbprint_list = [
+          - "06b25927c42a721631c1efd9431e648fa62e1e39",
+        ] -> (known after apply)
+      ~ url             = "oidc.eks.us-east-1.amazonaws.com/id/59BE7F50F59E3D0000E0672888CD29E3" -> "https://oidc.eks.us-east-1.amazonaws.com/id/0AEC2F66F0BFA32CCE730EADF9AD1396" # forces replacement
+        # (1 unchanged attribute hidden)
+    }
+
+  # module.networking.aws_eip.nat will be created
+  + resource "aws_eip" "nat" {
+      + allocation_id        = (known after apply)
+      + arn                  = (known after apply)
+      + association_id       = (known after apply)
+      + carrier_ip           = (known after apply)
+      + customer_owned_ip    = (known after apply)
+      + domain               = "vpc"
+      + id                   = (known after apply)
+      + instance             = (known after apply)
+      + ipam_pool_id         = (known after apply)
+      + network_border_group = (known after apply)
+      + network_interface    = (known after apply)
+      + private_dns          = (known after apply)
+      + private_ip           = (known after apply)
+      + ptr_record           = (known after apply)
+      + public_dns           = (known after apply)
+      + public_ip            = (known after apply)
+      + public_ipv4_pool     = (known after apply)
+      + tags                 = {
+          + "Name" = "starttech-nat-eip"
+        }
+      + tags_all             = {
+          + "Name" = "starttech-nat-eip"
+        }
+      + vpc                  = (known after apply)
+    }
+
+  # module.networking.aws_internet_gateway.this will be created
+  + resource "aws_internet_gateway" "this" {
+      + arn      = (known after apply)
+      + id       = (known after apply)
+      + owner_id = (known after apply)
+      + tags     = {
+          + "Name" = "starttech-igw"
+        }
+      + tags_all = {
+          + "Name" = "starttech-igw"
+        }
+      + vpc_id   = (known after apply)
+    }
+
+  # module.networking.aws_nat_gateway.this will be created
+  + resource "aws_nat_gateway" "this" {
+      + allocation_id                      = (known after apply)
+      + association_id                     = (known after apply)
+      + connectivity_type                  = "public"
+      + id                                 = (known after apply)
+      + network_interface_id               = (known after apply)
+      + private_ip                         = (known after apply)
+      + public_ip                          = (known after apply)
+      + secondary_private_ip_address_count = (known after apply)
+      + secondary_private_ip_addresses     = (known after apply)
+      + subnet_id                          = (known after apply)
+      + tags                               = {
+          + "Name" = "starttech-nat"
+        }
+      + tags_all                           = {
+          + "Name" = "starttech-nat"
+        }
+    }
+
+  # module.networking.aws_route_table.private will be created
+  + resource "aws_route_table" "private" {
+      + arn              = (known after apply)
+      + id               = (known after apply)
+      + owner_id         = (known after apply)
+      + propagating_vgws = (known after apply)
+      + route            = [
+          + {
+              + cidr_block                 = "0.0.0.0/0"
+              + nat_gateway_id             = (known after apply)
+                # (11 unchanged attributes hidden)
+            },
+        ]
+      + tags             = {
+          + "Name" = "starttech-private-rt"
+        }
+      + tags_all         = {
+          + "Name" = "starttech-private-rt"
+        }
+      + vpc_id           = (known after apply)
+    }
+
+  # module.networking.aws_route_table.public will be created
+  + resource "aws_route_table" "public" {
+      + arn              = (known after apply)
+      + id               = (known after apply)
+      + owner_id         = (known after apply)
+      + propagating_vgws = (known after apply)
+      + route            = [
+          + {
+              + cidr_block                 = "0.0.0.0/0"
+              + gateway_id                 = (known after apply)
+                # (11 unchanged attributes hidden)
+            },
+        ]
+      + tags             = {
+          + "Name" = "starttech-public-rt"
+        }
+      + tags_all         = {
+          + "Name" = "starttech-public-rt"
+        }
+      + vpc_id           = (known after apply)
+    }
+
+  # module.networking.aws_route_table_association.database[0] will be created
+  + resource "aws_route_table_association" "database" {
+      + id             = (known after apply)
+      + route_table_id = (known after apply)
+      + subnet_id      = (known after apply)
+    }
+
+  # module.networking.aws_route_table_association.database[1] will be created
+  + resource "aws_route_table_association" "database" {
+      + id             = (known after apply)
+      + route_table_id = (known after apply)
+      + subnet_id      = (known after apply)
+    }
+
+  # module.networking.aws_route_table_association.public[0] will be created
+  + resource "aws_route_table_association" "public" {
+      + id             = (known after apply)
+      + route_table_id = (known after apply)
+      + subnet_id      = (known after apply)
+    }
+
+  # module.networking.aws_route_table_association.public[1] will be created
+  + resource "aws_route_table_association" "public" {
+      + id             = (known after apply)
+      + route_table_id = (known after apply)
+      + subnet_id      = (known after apply)
+    }
+
+  # module.networking.aws_subnet.database[0] will be created
+  + resource "aws_subnet" "database" {
+      + arn                                            = (known after apply)
+      + assign_ipv6_address_on_creation                = false
+      + availability_zone                              = "us-east-1a"
+      + availability_zone_id                           = (known after apply)
+      + cidr_block                                     = "10.0.20.0/24"
+      + enable_dns64                                   = false
+      + enable_resource_name_dns_a_record_on_launch    = false
+      + enable_resource_name_dns_aaaa_record_on_launch = false
+      + id                                             = (known after apply)
+      + ipv6_cidr_block_association_id                 = (known after apply)
+      + ipv6_native                                    = false
+      + map_public_ip_on_launch                        = false
+      + owner_id                                       = (known after apply)
+      + private_dns_hostname_type_on_launch            = (known after apply)
+      + tags                                           = {
+          + "Name" = "starttech-database-0"
+        }
+      + tags_all                                       = {
+          + "Name" = "starttech-database-0"
+        }
+      + vpc_id                                         = (known after apply)
+    }
+
+  # module.networking.aws_subnet.database[1] will be created
+  + resource "aws_subnet" "database" {
+      + arn                                            = (known after apply)
+      + assign_ipv6_address_on_creation                = false
+      + availability_zone                              = "us-east-1b"
+      + availability_zone_id                           = (known after apply)
+      + cidr_block                                     = "10.0.21.0/24"
+      + enable_dns64                                   = false
+      + enable_resource_name_dns_a_record_on_launch    = false
+      + enable_resource_name_dns_aaaa_record_on_launch = false
+      + id                                             = (known after apply)
+      + ipv6_cidr_block_association_id                 = (known after apply)
+      + ipv6_native                                    = false
+      + map_public_ip_on_launch                        = false
+      + owner_id                                       = (known after apply)
+      + private_dns_hostname_type_on_launch            = (known after apply)
+      + tags                                           = {
+          + "Name" = "starttech-database-1"
+        }
+      + tags_all                                       = {
+          + "Name" = "starttech-database-1"
+        }
+      + vpc_id                                         = (known after apply)
+    }
+
+  # module.networking.aws_subnet.private[0] will be created
+  + resource "aws_subnet" "private" {
+      + arn                                            = (known after apply)
+      + assign_ipv6_address_on_creation                = false
+      + availability_zone                              = "us-east-1a"
+      + availability_zone_id                           = (known after apply)
+      + cidr_block                                     = "10.0.10.0/24"
+      + enable_dns64                                   = false
+      + enable_resource_name_dns_a_record_on_launch    = false
+      + enable_resource_name_dns_aaaa_record_on_launch = false
+      + id                                             = (known after apply)
+      + ipv6_cidr_block_association_id                 = (known after apply)
+      + ipv6_native                                    = false
+      + map_public_ip_on_launch                        = false
+      + owner_id                                       = (known after apply)
+      + private_dns_hostname_type_on_launch            = (known after apply)
+      + tags                                           = {
+          + "Name"                                    = "starttech-private-0"
+          + "kubernetes.io/cluster/starttech-cluster" = "shared"
+          + "kubernetes.io/role/internal-elb"         = "1"
+        }
+      + tags_all                                       = {
+          + "Name"                                    = "starttech-private-0"
+          + "kubernetes.io/cluster/starttech-cluster" = "shared"
+          + "kubernetes.io/role/internal-elb"         = "1"
+        }
+      + vpc_id                                         = (known after apply)
+    }
+
+  # module.networking.aws_subnet.private[1] will be created
+  + resource "aws_subnet" "private" {
+      + arn                                            = (known after apply)
+      + assign_ipv6_address_on_creation                = false
+      + availability_zone                              = "us-east-1b"
+      + availability_zone_id                           = (known after apply)
+      + cidr_block                                     = "10.0.11.0/24"
+      + enable_dns64                                   = false
+      + enable_resource_name_dns_a_record_on_launch    = false
+      + enable_resource_name_dns_aaaa_record_on_launch = false
+      + id                                             = (known after apply)
+      + ipv6_cidr_block_association_id                 = (known after apply)
+      + ipv6_native                                    = false
+      + map_public_ip_on_launch                        = false
+      + owner_id                                       = (known after apply)
+      + private_dns_hostname_type_on_launch            = (known after apply)
+      + tags                                           = {
+          + "Name"                                    = "starttech-private-1"
+          + "kubernetes.io/cluster/starttech-cluster" = "shared"
+          + "kubernetes.io/role/internal-elb"         = "1"
+        }
+      + tags_all                                       = {
+          + "Name"                                    = "starttech-private-1"
+          + "kubernetes.io/cluster/starttech-cluster" = "shared"
+          + "kubernetes.io/role/internal-elb"         = "1"
+        }
+      + vpc_id                                         = (known after apply)
+    }
+
+  # module.networking.aws_subnet.public[0] will be created
+  + resource "aws_subnet" "public" {
+      + arn                                            = (known after apply)
+      + assign_ipv6_address_on_creation                = false
+      + availability_zone                              = "us-east-1a"
+      + availability_zone_id                           = (known after apply)
+      + cidr_block                                     = "10.0.0.0/24"
+      + enable_dns64                                   = false
+      + enable_resource_name_dns_a_record_on_launch    = false
+      + enable_resource_name_dns_aaaa_record_on_launch = false
+      + id                                             = (known after apply)
+      + ipv6_cidr_block_association_id                 = (known after apply)
+      + ipv6_native                                    = false
+      + map_public_ip_on_launch                        = true
+      + owner_id                                       = (known after apply)
+      + private_dns_hostname_type_on_launch            = (known after apply)
+      + tags                                           = {
+          + "Name"                                    = "starttech-public-0"
+          + "kubernetes.io/cluster/starttech-cluster" = "shared"
+          + "kubernetes.io/role/elb"                  = "1"
+        }
+      + tags_all                                       = {
+          + "Name"                                    = "starttech-public-0"
+          + "kubernetes.io/cluster/starttech-cluster" = "shared"
+          + "kubernetes.io/role/elb"                  = "1"
+        }
+      + vpc_id                                         = (known after apply)
+    }
+
+  # module.networking.aws_subnet.public[1] will be created
+  + resource "aws_subnet" "public" {
+      + arn                                            = (known after apply)
+      + assign_ipv6_address_on_creation                = false
+      + availability_zone                              = "us-east-1b"
+      + availability_zone_id                           = (known after apply)
+      + cidr_block                                     = "10.0.1.0/24"
+      + enable_dns64                                   = false
+      + enable_resource_name_dns_a_record_on_launch    = false
+      + enable_resource_name_dns_aaaa_record_on_launch = false
+      + id                                             = (known after apply)
+      + ipv6_cidr_block_association_id                 = (known after apply)
+      + ipv6_native                                    = false
+      + map_public_ip_on_launch                        = true
+      + owner_id                                       = (known after apply)
+      + private_dns_hostname_type_on_launch            = (known after apply)
+      + tags                                           = {
+          + "Name"                                    = "starttech-public-1"
+          + "kubernetes.io/cluster/starttech-cluster" = "shared"
+          + "kubernetes.io/role/elb"                  = "1"
+        }
+      + tags_all                                       = {
+          + "Name"                                    = "starttech-public-1"
+          + "kubernetes.io/cluster/starttech-cluster" = "shared"
+          + "kubernetes.io/role/elb"                  = "1"
+        }
+      + vpc_id                                         = (known after apply)
+    }
+
+  # module.networking.aws_vpc.starttech-vpc will be created
+  + resource "aws_vpc" "starttech-vpc" {
+      + arn                                  = (known after apply)
+      + cidr_block                           = "10.0.0.0/16"
+      + default_network_acl_id               = (known after apply)
+      + default_route_table_id               = (known after apply)
+      + default_security_group_id            = (known after apply)
+      + dhcp_options_id                      = (known after apply)
+      + enable_dns_hostnames                 = true
+      + enable_dns_support                   = true
+      + enable_network_address_usage_metrics = (known after apply)
+      + id                                   = (known after apply)
+      + instance_tenancy                     = "default"
+      + ipv6_association_id                  = (known after apply)
+      + ipv6_cidr_block                      = (known after apply)
+      + ipv6_cidr_block_network_border_group = (known after apply)
+      + main_route_table_id                  = (known after apply)
+      + owner_id                             = (known after apply)
+      + tags                                 = {
+          + "Name" = "starttech-vpc"
+        }
+      + tags_all                             = {
+          + "Name" = "starttech-vpc"
+        }
+    }
+
+Plan: 19 to add, 3 to change, 2 to destroy.
+
+Changes to Outputs:
+  ~ eks_cluster_endpoint  = "https://59BE7F50F59E3D0000E0672888CD29E3.gr7.us-east-1.eks.amazonaws.com" -> "https://0AEC2F66F0BFA32CCE730EADF9AD1396.sk1.us-east-1.eks.amazonaws.com"
+  ~ eks_oidc_provider_arn = "arn:aws:iam::232428703462:oidc-provider/oidc.eks.us-east-1.amazonaws.com/id/59BE7F50F59E3D0000E0672888CD29E3" -> (known after apply)
+  ~ vpc_id                = "vpc-0bf9c30284d726b50" -> (known after apply)
+
+Warning: Resource targeting is in effect
+
+You are creating a plan with the -target option, which means that the result of this plan may not represent all of
+the changes requested by the current configuration.
+
+The -target option is not for routine use, and is provided only for exceptional situations such as recovering from
+errors or mistakes, or when Terraform specifically suggests to use it as part of an error message.
+
+─────────────────────────────────────────────────────────────────────────────
+
+Note: You didn't use the -out option to save this plan, so Terraform can't
+guarantee to take exactly these actions if you run "terraform apply" now.
+Releasing state lock. This may take a few moments...
