@@ -50,53 +50,45 @@ module "storage" {
 }
 
 # ---------------- Backend ALB lookup ----------------
-# COMMENTED OUT: The ALB is created by the AWS Load Balancer Controller (running on
-# EKS) once the backend Ingress is deployed — which is out of scope for this repo.
-# Uncomment once the backend app has been deployed to EKS and the ALB exists, so
-# this source can resolve it.
 
-# data "aws_lb" "backend" {
-#   tags = {
-#     "elbv2.k8s.aws/cluster" = module.eks.cluster_name
-#   }
+data "aws_lb" "backend" {
+  tags = {
+    "elbv2.k8s.aws/cluster" = module.eks.cluster_name
+  }
 
-#   depends_on = [module.eks]
-# }
+  depends_on = [module.eks]
+}
 
 # ---------------- CDN (unified CloudFront: S3 + ALB origins) ----------------
-# COMMENTED OUT: depends on data.aws_lb.backend above, which requires the ALB to
-# already exist. Uncomment together with the data source once the backend is live.
 
-# module "cdn" {
-#   source                         = "./modules/cdn"
-#   s3_bucket_regional_domain_name = module.storage.bucket_regional_domain_name
-#   s3_bucket_id                   = module.storage.bucket_id
-#   alb_dns_name                   = data.aws_lb.backend.dns_name
-# }
+module "cdn" {
+  source                         = "./modules/cdn"
+  s3_bucket_regional_domain_name = module.storage.bucket_regional_domain_name
+  s3_bucket_id                   = module.storage.bucket_id
+  alb_dns_name                   = data.aws_lb.backend.dns_name
+}
 
 # Bucket policy granting CloudFront (OAC) read access — defined at root level to
-# avoid a circular dependency between the storage and cdn modules.
-# COMMENTED OUT: depends on module.cdn.distribution_arn above.
 
-# resource "aws_s3_bucket_policy" "frontend_oac" {
-#   bucket = module.storage.bucket_id
+resource "aws_s3_bucket_policy" "frontend_oac" {
+  bucket = module.storage.bucket_id
 
-#   policy = jsonencode({
-#     Version = "2012-10-17"
-#     Statement = [{
-#       Sid       = "AllowCloudFrontOAC"
-#       Effect    = "Allow"
-#       Principal = { Service = "cloudfront.amazonaws.com" }
-#       Action    = "s3:GetObject"
-#       Resource  = "${module.storage.bucket_arn}/*"
-#       Condition = {
-#         StringEquals = {
-#           "AWS:SourceArn" = module.cdn.distribution_arn
-#         }
-#       }
-#     }]
-#   })
-# }
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [{
+      Sid       = "AllowCloudFrontOAC"
+      Effect    = "Allow"
+      Principal = { Service = "cloudfront.amazonaws.com" }
+      Action    = "s3:GetObject"
+      Resource  = "${module.storage.bucket_arn}/*"
+      Condition = {
+        StringEquals = {
+          "AWS:SourceArn" = module.cdn.distribution_arn
+        }
+      }
+    }]
+  })
+}
 
 # ---------------- Database (ElastiCache Redis) ----------------
 module "database" {
