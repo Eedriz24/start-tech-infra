@@ -23,12 +23,12 @@ variable "public_subnet_ids" {
 # ---------------- EKS Node Group Variables ----------------
 variable "node_instance_types" {
   type    = list(string)
-  default = ["t3.micro"]
+  default = ["t3.small"]
 }
 
 variable "node_desired_size" {
   type    = number
-  default = 2
+  default = 3
 }
 
 variable "node_min_size" {
